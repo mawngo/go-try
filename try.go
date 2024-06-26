@@ -21,11 +21,14 @@ func Do(op func() error, retryOptions ...RetryOption) error {
 func DoWithOptions(op func() error, options Options) error {
 	cnt := 0
 	var lastErr error
+	ctx := options.context
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	for {
-		if options.context != nil {
-			if err := options.context.Err(); err != nil {
-				return combineErr(err, lastErr)
-			}
+		if err := ctx.Err(); err != nil {
+			return combineErr(err, lastErr)
 		}
 
 		err := op()
@@ -42,7 +45,7 @@ func DoWithOptions(op func() error, options Options) error {
 				time.Sleep(options.backoffStrategy(err, cnt))
 			}
 			if options.onRetry != nil {
-				options.onRetry(err, cnt)
+				options.onRetry(ctx, err, cnt)
 			}
 			if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 				lastErr = err
@@ -65,12 +68,14 @@ func Get[T any](op func() (T, error), retryOptions ...RetryOption) (T, error) {
 func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 	cnt := 0
 	var lastErr error
+	ctx := options.context
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	for {
-		if options.context != nil {
-			if err := options.context.Err(); err != nil {
-				var empty T
-				return empty, combineErr(err, lastErr)
-			}
+		if err := ctx.Err(); err != nil {
+			var empty T
+			return empty, combineErr(err, lastErr)
 		}
 
 		v, err := op()
@@ -87,7 +92,7 @@ func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 				time.Sleep(options.backoffStrategy(err, cnt))
 			}
 			if options.onRetry != nil {
-				options.onRetry(err, cnt)
+				options.onRetry(ctx, err, cnt)
 			}
 			continue
 		}

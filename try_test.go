@@ -41,7 +41,7 @@ func TestDoRetryWithOnRetry(t *testing.T) {
 	i := 0
 	err := Do(func() error {
 		return errFailed
-	}, WithAttempts(10), WithOnRetry(func(_ error, _ int) {
+	}, WithAttempts(10), WithOnRetry(func(_ context.Context, _ error, _ int) {
 		i++
 	}))
 	assert.True(t, errors.Is(err, errFailed))

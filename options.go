@@ -5,7 +5,6 @@ import (
 	"errors"
 	"github.com/mawngo/go-try/backoff"
 	"log/slog"
-	"strconv"
 	"time"
 )
 
@@ -40,16 +39,16 @@ func ErrIs(err error) ErrorMatcher {
 }
 
 // OnRetryHandler handler that will be called for each retry.
-type OnRetryHandler func(err error, i int)
+type OnRetryHandler func(ctx context.Context, err error, i int)
 
 // WithOnRetryLogging return a OnRetryHandler that log a message.
 // The log level will automatically be changed to error when reach DefaultMaxAttempts.
 func WithOnRetryLogging(level slog.Level, msg string) OnRetryHandler {
-	return func(err error, i int) {
+	return func(ctx context.Context, err error, i int) {
 		if i >= DefaultMaxAttempts {
 			level = slog.LevelError
 		}
-		slog.Log(context.Background(), level, msg+" - retries #"+strconv.Itoa(i)+" "+err.Error())
+		slog.Log(ctx, level, msg, slog.Int("retry", i), slog.Any("err", err))
 	}
 }
 
