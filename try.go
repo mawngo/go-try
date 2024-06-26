@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var ErrLimitExceed = errors.New("retry limit exceed")
+var ErrRetryAttemptsExceed = errors.New("retry attempts exceed")
 
 // Do performs the given operation.
 // Based on the retryOptions, it can retry the operation, if it failed.
@@ -22,6 +22,12 @@ func DoWithOptions(op func() error, options Options) error {
 	cnt := 0
 	var lastErr error
 	for {
+		if options.context != nil {
+			if err := options.context.Err(); err != nil {
+				return err
+			}
+		}
+
 		err := op()
 		cnt++
 
@@ -30,7 +36,7 @@ func DoWithOptions(op func() error, options Options) error {
 				return combineErr(err, lastErr)
 			}
 			if options.maxAttempts > 0 && cnt >= options.maxAttempts {
-				return errors.Join(ErrLimitExceed, combineErr(err, lastErr))
+				return errors.Join(ErrRetryAttemptsExceed, combineErr(err, lastErr))
 			}
 			if options.backoffStrategy != nil {
 				time.Sleep(options.backoffStrategy(err, cnt))
@@ -60,6 +66,13 @@ func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 	cnt := 0
 	var lastErr error
 	for {
+		if options.context != nil {
+			if err := options.context.Err(); err != nil {
+				var empty T
+				return empty, err
+			}
+		}
+
 		v, err := op()
 		cnt++
 
@@ -68,7 +81,7 @@ func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 				return v, combineErr(err, lastErr)
 			}
 			if options.maxAttempts > 0 && cnt >= options.maxAttempts {
-				return v, errors.Join(ErrLimitExceed, combineErr(err, lastErr))
+				return v, errors.Join(ErrRetryAttemptsExceed, combineErr(err, lastErr))
 			}
 			if options.backoffStrategy != nil {
 				time.Sleep(options.backoffStrategy(err, cnt))

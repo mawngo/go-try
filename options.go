@@ -14,6 +14,7 @@ const DefaultMaxAttempts = 5
 const defaultMultiplier = 2
 
 type Options struct {
+	context          context.Context
 	maxAttempts      int
 	matcher          ErrorMatcher
 	excludedMatcher  ErrorMatcher
@@ -54,6 +55,13 @@ func WithOnRetryLogging(level slog.Level, msg string) OnRetryHandler {
 
 // RetryOption configure the Options.
 type RetryOption func(options *Options)
+
+// WithContext set context of retry.
+func WithContext(ctx context.Context) RetryOption {
+	return func(options *Options) {
+		options.context = ctx
+	}
+}
 
 // WithMaxAttempts specifies the maximum number retries.
 func WithMaxAttempts(attempts int) RetryOption {
