@@ -41,7 +41,7 @@ func ErrIs(err error) ErrorMatcher {
 // OnRetryHandler handler that will be called for each retry.
 type OnRetryHandler func(ctx context.Context, err error, i int)
 
-// WithOnRetryLogging return a OnRetryHandler that log a message.
+// WithOnRetryLogging return a RetryOption that log a message on each retry.
 // The log level will automatically be changed to error when reach DefaultMaxAttempts.
 func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
 	return WithOnRetry(func(ctx context.Context, err error, i int) {
