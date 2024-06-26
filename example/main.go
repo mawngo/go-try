@@ -1,12 +1,3 @@
-# Try
-
-Simple retry helpers for go.
-
-## Usage
-
-The retry package provides a Do() function which can be used to execute a provided function until it succeds.
-
-```go
 package main
 
 import (
@@ -30,7 +21,3 @@ func main() {
 	println(err == nil)
 	println(i == 2)
 }
-
-```
-
-See [options.go](options.go) for available options.
