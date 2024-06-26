@@ -24,7 +24,7 @@ func DoWithOptions(op func() error, options Options) error {
 	for {
 		if options.context != nil {
 			if err := options.context.Err(); err != nil {
-				return err
+				return combineErr(err, lastErr)
 			}
 		}
 
@@ -69,7 +69,7 @@ func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 		if options.context != nil {
 			if err := options.context.Err(); err != nil {
 				var empty T
-				return empty, err
+				return empty, combineErr(err, lastErr)
 			}
 		}
 

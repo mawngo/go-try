@@ -214,7 +214,8 @@ func WithOnRetry(handler OnRetryHandler) RetryOption {
 	}
 }
 
-// WithRetryOnContextError enable retry for context.* errors.
+// WithRetryOnContextError enable retry when the operation return a context.DeadlineExceeded or context.Canceled.
+// It still not retry when the error come from Options context.
 func WithRetryOnContextError() RetryOption {
 	return func(options *Options) {
 		options.skipContextError = false

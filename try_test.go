@@ -24,14 +24,16 @@ func TestDoRetry(t *testing.T) {
 	assert.Equal(t, 2, i)
 }
 
-func TestDoRetryContext(t *testing.T) {
+func TestDoRetryWithContext(t *testing.T) {
 	i := 0
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	err := Do(func() error {
 		return nil
-	}, WithContext(ctx))
-	assert.Equal(t, err, context.Canceled)
+	},
+		WithContext(ctx),
+		WithRetryOnContextError()) // This will be ignored.
+	assert.True(t, errors.Is(err, context.Canceled))
 	assert.Equal(t, 0, i)
 }
 
