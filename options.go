@@ -234,6 +234,15 @@ func (o Options) matchError(err error) bool {
 	return o.matcher(err)
 }
 
+// WithOptions copy all the specified Options value into this options.
+// Useful if you have a global Options somewhere and want to customize it for local use case,
+// otherwise just use the DoWithOptions instead.
+func WithOptions(opt Options) RetryOption {
+	return func(options *Options) {
+		*options = opt
+	}
+}
+
 // NewOptions create an Options.
 // Defaults:
 // - maxAttempts 5 times.

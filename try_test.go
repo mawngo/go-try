@@ -159,3 +159,25 @@ func TestDoNotRetryOnContextErr(t *testing.T) {
 	assert.True(t, errors.Is(err, errFailed))
 	assert.Equal(t, 2, i)
 }
+
+func TestNoRetry(t *testing.T) {
+	i := 0
+	err := Do(func() error {
+		i++
+		return errFailed
+	}, WithAttempts(1))
+	assert.True(t, errors.Is(err, errFailed))
+	assert.Equal(t, 1, i)
+}
+
+func TestWithOptions(t *testing.T) {
+	global := NewOptions(WithAttempts(1))
+	i := 0
+	err := Do(func() error {
+		i++
+		return errFailed
+	}, WithOptions(global), WithAttempts(2))
+	assert.True(t, errors.Is(err, errFailed))
+	assert.Equal(t, 2, i)
+	assert.Equal(t, 1, global.maxAttempts)
+}
