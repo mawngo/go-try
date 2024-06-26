@@ -1,4 +1,4 @@
-# Try
+# Go Try
 
 Simple retry helpers for go. Require go 1.22+
 
@@ -38,3 +38,5 @@ func main() {
 ```
 
 See [options.go](options.go) for available options.
+
+See [backoff.go](backoff/backoff.go) for built-in backoff support.
