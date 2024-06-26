@@ -43,13 +43,13 @@ type OnRetryHandler func(ctx context.Context, err error, i int)
 
 // WithOnRetryLogging return a OnRetryHandler that log a message.
 // The log level will automatically be changed to error when reach DefaultMaxAttempts.
-func WithOnRetryLogging(level slog.Level, msg string) OnRetryHandler {
-	return func(ctx context.Context, err error, i int) {
+func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
+	return WithOnRetry(func(ctx context.Context, err error, i int) {
 		if i >= DefaultMaxAttempts {
 			level = slog.LevelError
 		}
 		slog.Log(ctx, level, msg, slog.Int("retry", i), slog.Any("err", err))
-	}
+	})
 }
 
 // RetryOption configure the Options.
