@@ -41,15 +41,20 @@ func ErrIs(err error) ErrorMatcher {
 // OnRetryHandler handler that will be called for each retry.
 type OnRetryHandler func(ctx context.Context, err error, i int)
 
-// WithOnRetryLogging return a RetryOption that log a message on each retry.
-// The log level will automatically be changed to error when reach DefaultMaxAttempts.
-func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
-	return WithOnRetry(func(ctx context.Context, err error, i int) {
+// NewOnRetryLoggingHandler return a OnRetryHandler that log a message on each retry.
+func NewOnRetryLoggingHandler(level slog.Level, msg string) OnRetryHandler {
+	return func(ctx context.Context, err error, i int) {
 		if i >= DefaultMaxAttempts {
 			level = slog.LevelError
 		}
 		slog.Log(ctx, level, msg, slog.Int("retry", i), slog.Any("err", err))
-	})
+	}
+}
+
+// WithOnRetryLogging return a RetryOption that log a message on each retry.
+// The log level will automatically be changed to error when reach DefaultMaxAttempts.
+func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
+	return WithOnRetry(NewOnRetryLoggingHandler(level, msg))
 }
 
 // RetryOption configure the Options.
@@ -207,9 +212,19 @@ func WithExponentialRandomBackoff(initialBackoff time.Duration, maximumBackoff t
 }
 
 // WithOnRetry configure listener on each retry.
-func WithOnRetry(handler OnRetryHandler) RetryOption {
+func WithOnRetry(handler OnRetryHandler, handlers ...OnRetryHandler) RetryOption {
+	if len(handlers) == 0 {
+		return func(options *Options) {
+			options.onRetry = handler
+		}
+	}
 	return func(options *Options) {
-		options.onRetry = handler
+		handlers := append([]OnRetryHandler{handler}, handlers...)
+		options.onRetry = func(ctx context.Context, err error, retry int) {
+			for i := range handlers {
+				handlers[i](ctx, err, retry)
+			}
+		}
 	}
 }
 
