@@ -39,7 +39,7 @@ func TestDoRetryWithOnRetry(t *testing.T) {
 	i := 0
 	err := Do(func() error {
 		return errFailed
-	}, WithMaxAttempts(10), WithOnRetry(func(_ error, _ int) {
+	}, WithAttempts(10), WithOnRetry(func(_ error, _ int) {
 		i++
 	}))
 	assert.True(t, errors.Is(err, errFailed))
@@ -79,7 +79,7 @@ func TestDoRetryLimited(t *testing.T) {
 	err := Do(func() error {
 		i++
 		return errFailed
-	}, WithMaxAttempts(10))
+	}, WithAttempts(10))
 	assert.True(t, errors.Is(err, errFailed))
 	assert.Equal(t, 10, i)
 }
@@ -90,7 +90,7 @@ func TestDoRetryBackoff(t *testing.T) {
 	err := Do(func() error {
 		i++
 		return errFailed
-	}, WithMaxAttempts(11), WithFixedBackoff(200*time.Millisecond))
+	}, WithAttempts(11), WithFixedBackoff(200*time.Millisecond))
 	took := time.Since(start)
 
 	assert.True(t, errors.Is(err, errFailed))
@@ -106,7 +106,7 @@ func TestDoRetryExponentialBackoff(t *testing.T) {
 	err := Do(func() error {
 		i++
 		return errFailed
-	}, WithMaxAttempts(4), WithExponentialBackoff(200*time.Millisecond, 0))
+	}, WithAttempts(4), WithExponentialBackoff(200*time.Millisecond, 0))
 	took := time.Since(start)
 
 	assert.True(t, errors.Is(err, errFailed))
@@ -122,7 +122,7 @@ func TestDoRetryIncrementalBackoff(t *testing.T) {
 	err := Do(func() error {
 		i++
 		return errFailed
-	}, WithMaxAttempts(5), WithBackoff(backoff.NewIncrementalBackoff(200*time.Millisecond, 200*time.Millisecond, 0)))
+	}, WithAttempts(5), WithBackoff(backoff.NewIncrementalBackoff(200*time.Millisecond, 200*time.Millisecond, 0)))
 	took := time.Since(start)
 
 	assert.True(t, errors.Is(err, errFailed))

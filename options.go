@@ -63,8 +63,10 @@ func WithContext(ctx context.Context) RetryOption {
 	}
 }
 
-// WithMaxAttempts specifies the maximum number retries.
-func WithMaxAttempts(attempts int) RetryOption {
+// WithAttempts specifies the maximum number of run and retries.
+// Total retry will be attempts - 1.
+// attempts = 1 mean no retry, attempts = 0 mean retry infinity.
+func WithAttempts(attempts int) RetryOption {
 	return func(options *Options) {
 		options.maxAttempts = attempts
 	}
