@@ -16,7 +16,7 @@ func NewFixedBackoff(backoff time.Duration) Strategy {
 	}
 }
 
-// NewRandomBackoff return a NewFixedBackoff with MINUS random jitter.
+// NewRandomBackoff return a NewFixedBackoff with added random jitter.
 func NewRandomBackoff(minBackoff time.Duration, jitter time.Duration) Strategy {
 	return NewBackoffWithJitter(NewFixedBackoff(minBackoff), jitter)
 }
@@ -24,8 +24,9 @@ func NewRandomBackoff(minBackoff time.Duration, jitter time.Duration) Strategy {
 // NewBackoffWithJitter add random jitter to existing BackoffStrategy.
 // The jitter is always added, which may not respect configuration of existing BackoffStrategy,
 // for example, ExponentialBackoff max wait time may > maximumBackoff because of the jitter.
-// For Built-in Strategy you better use the RandomBackoff variant of it.
+//
 // This construct is intended to easily adding jitter to user defined backoff Strategy.
+// For built-in Strategy you better use the RandomBackoff variant of it.
 func NewBackoffWithJitter(backoff Strategy, jitter time.Duration) Strategy {
 	return func(err error, i int) time.Duration {
 		return backoff(err, i) + time.Duration(rand.Int63n(int64(jitter)))
