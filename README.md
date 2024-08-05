@@ -8,12 +8,13 @@ go get -u github.com/mawngo/go-try
 
 ## Usage
 
-The retry package provides a Do() function which can be used to execute a provided function until it succeds.
+The retry package provides a Do() function which can be used to execute a provided function until it succeeds.
 
 ```go
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/mawngo/go-try"
@@ -27,7 +28,7 @@ func main() {
 		}
 		i++
 		return errors.New("failed")
-	}, try.WithOnRetry(func(err error, i int) {
+	}, try.WithOnRetry(func(_ context.Context, err error, i int) {
 		fmt.Printf("Retries #%d %s\n", i, err)
 	}))
 

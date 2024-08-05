@@ -8,8 +8,8 @@ import (
 
 var ErrRetryAttemptsExceed = errors.New("retry attempts exceed")
 
-// Do performs the given operation.
-// Based on the retryOptions, it can retry the operation, if it failed.
+// Do perform the given operation.
+// Based on the retryOptions, it can retry the operation if it failed.
 // See RetryOption.
 func Do(op func() error, retryOptions ...RetryOption) error {
 	option := NewOptions(retryOptions...)
@@ -17,7 +17,7 @@ func Do(op func() error, retryOptions ...RetryOption) error {
 }
 
 // DoWithOptions performs the given operation.
-// Based on the options, it can retry the operation, if it failed.
+// Based on the options, it can retry the operation if it failed.
 func DoWithOptions(op func() error, options Options) error {
 	cnt := 0
 	var lastErr error

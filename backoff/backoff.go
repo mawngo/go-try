@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Strategy is a function that calculate the backoff.
+// Strategy is a function that calculates the backoff.
 type Strategy func(err error, i int) time.Duration
 
 // NewFixedBackoff return a BackoffStrategy that backoff at a fixed rate.
@@ -25,8 +25,8 @@ func NewRandomBackoff(minBackoff time.Duration, jitter time.Duration) Strategy {
 // The jitter is always added, which may not respect configuration of existing BackoffStrategy,
 // for example, ExponentialBackoff max wait time may > maximumBackoff because of the jitter.
 //
-// This construct is intended to easily adding jitter to user defined backoff Strategy.
-// For built-in Strategy you better use the RandomBackoff variant of it.
+// This construct is intended to easily add jitter to user defined backoff Strategy.
+// For built-in Strategy, you better use the RandomBackoff variant of it.
 func NewBackoffWithJitter(backoff Strategy, jitter time.Duration) Strategy {
 	return func(err error, i int) time.Duration {
 		return backoff(err, i) + time.Duration(rand.Int63n(int64(jitter)))

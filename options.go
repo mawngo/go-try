@@ -25,7 +25,7 @@ type Options struct {
 // ErrorMatcher match the error, return true if matched.
 type ErrorMatcher func(err error) bool
 
-// ErrAs is a ErrorMatcher that match error using errors.As.
+// ErrAs is an ErrorMatcher that match error using errors.As.
 func ErrAs[T error](err error) bool {
 	var e T
 	return errors.As(err, &e)
@@ -67,9 +67,9 @@ func WithContext(ctx context.Context) RetryOption {
 	}
 }
 
-// WithAttempts specifies the maximum number of run and retries.
+// WithAttempts specifies the maximum number of runs and retries.
 // Total retry will be attempts - 1.
-// attempts = 1 mean no retry, attempts = 0 mean retry infinity.
+// attempts = 1 means no retry, attempts = 0 mean retry infinity.
 func WithAttempts(attempts int) RetryOption {
 	return func(options *Options) {
 		options.maxAttempts = attempts
@@ -187,7 +187,7 @@ func WithFixedBackoff(duration time.Duration) RetryOption {
 }
 
 // WithRandomBackoff fixed wait time between retries with added jitter.
-// Default jitter is half of the duration, if you need customize this value, use WithBackoff with backoff.NewRandomBackoff.
+// Default jitter is half of the duration, if you need to customize this value, use WithBackoff with backoff.NewRandomBackoff.
 func WithRandomBackoff(duration time.Duration) RetryOption {
 	return func(options *Options) {
 		options.backoffStrategy = backoff.NewRandomBackoff(duration, duration/2)
@@ -195,7 +195,7 @@ func WithRandomBackoff(duration time.Duration) RetryOption {
 }
 
 // WithExponentialBackoff exponential wait time between retries.
-// Default multiplier is 2, if you need customize this value, use WithBackoff with backoff.NewExponentialBackoff.
+// Default multiplier is 2, if you need to customize this value, use WithBackoff with backoff.NewExponentialBackoff.
 func WithExponentialBackoff(initialBackoff time.Duration, maximumBackoff time.Duration) RetryOption {
 	return func(options *Options) {
 		options.backoffStrategy = backoff.NewExponentialRandomBackoff(initialBackoff, defaultMultiplier, maximumBackoff, initialBackoff/2)
@@ -203,8 +203,8 @@ func WithExponentialBackoff(initialBackoff time.Duration, maximumBackoff time.Du
 }
 
 // WithExponentialRandomBackoff exponential wait time between retries with added jitter.
-// Default multiplier is 2, if you need customize this value, use WithBackoff with backoff.NewExponentialRandomBackoff.
-// Default jitter is half of the initialBackoff, if you need customize this value, use WithBackoff with backoff.NewExponentialRandomBackoff.
+// Default multiplier is 2, if you need to customize this value, use WithBackoff with backoff.NewExponentialRandomBackoff.
+// The default jitter is half of the initialBackoff, if you need to customize this value, use WithBackoff with backoff.NewExponentialRandomBackoff.
 func WithExponentialRandomBackoff(initialBackoff time.Duration, maximumBackoff time.Duration) RetryOption {
 	return func(options *Options) {
 		options.backoffStrategy = backoff.NewExponentialBackoff(initialBackoff, defaultMultiplier, maximumBackoff)
@@ -228,8 +228,8 @@ func WithOnRetry(handler OnRetryHandler, handlers ...OnRetryHandler) RetryOption
 	}
 }
 
-// WithRetryOnContextError enable retry when the operation return a context.DeadlineExceeded or context.Canceled.
-// It still not retry when the error come from Options context.
+// WithRetryOnContextError enable retry when the operation returns a context.DeadlineExceeded or context.Canceled.
+// It still doesn't retry when the error comes from the Options context.
 func WithRetryOnContextError() RetryOption {
 	return func(options *Options) {
 		options.skipContextError = false
