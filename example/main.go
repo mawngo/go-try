@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/mawngo/go-try"
+	"github.com/mawngo/go-try/v2"
 )
 
 func main() {

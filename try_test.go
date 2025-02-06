@@ -3,7 +3,7 @@ package try
 import (
 	"context"
 	"errors"
-	"github.com/mawngo/go-try/backoff"
+	"github.com/mawngo/go-try/v2/backoff"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -24,15 +24,13 @@ func TestDoRetry(t *testing.T) {
 	assert.Equal(t, 2, i)
 }
 
-func TestDoRetryWithContext(t *testing.T) {
+func TestDoCtxRetry(t *testing.T) {
 	i := 0
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	err := Do(func() error {
+	err := DoCtx(ctx, func() error {
 		return nil
-	},
-		WithContext(ctx),
-		WithRetryOnContextError()) // This will be ignored.
+	})
 	assert.True(t, errors.Is(err, context.Canceled))
 	assert.Equal(t, 0, i)
 }

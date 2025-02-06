@@ -3,7 +3,7 @@
 Simple retry helpers for go. Require go 1.22+
 
 ```shell
-go get -u github.com/mawngo/go-try
+go get -u github.com/mawngo/go-try/v2
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/mawngo/go-try"
+	"github.com/mawngo/go-try/v2"
 )
 
 func main() {
