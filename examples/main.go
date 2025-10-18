@@ -1,9 +1,7 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"github.com/mawngo/go-try/v2"
 )
 
@@ -15,9 +13,7 @@ func main() {
 		}
 		i++
 		return errors.New("failed")
-	}, try.WithOnRetry(func(_ context.Context, err error, i int) {
-		fmt.Printf("Retries #%d %s\n", i, err)
-	}))
+	})
 
 	println(err == nil)
 	println(i == 2)

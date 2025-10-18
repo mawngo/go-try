@@ -8,15 +8,14 @@ go get -u github.com/mawngo/go-try/v2
 
 ## Usage
 
-The retry package provides a Do() function which can be used to execute a provided function until it succeeds.
+The retry package provides a `Do()` and `Get()` function which can be used to execute a provided function until it
+succeeds.
 
 ```go
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"github.com/mawngo/go-try/v2"
 )
 
@@ -28,15 +27,19 @@ func main() {
 		}
 		i++
 		return errors.New("failed")
-	}, try.WithOnRetry(func(_ context.Context, err error, i int) {
-		fmt.Printf("Retries #%d %s\n", i, err)
-	}))
+	})
 
 	println(err == nil)
 	println(i == 2)
 }
 
 ```
+
+By default, the function will be retried 5 times max with a 300ms + 100ms jitter backoff.
+
+## Documentation
+
+See [examples](examples/) for more usage examples.
 
 See [options.go](options.go) for available options.
 

@@ -31,8 +31,8 @@ type RetryOption func(options *Options)
 
 // NewOptions create an Options.
 // Defaults:
-// - maxAttempts 5 times.
-// - 300 ms backoff + 100 ms jitter.
+//   - maxAttempts 5 times.
+//   - 300 ms backoff + 100 ms jitter.
 func NewOptions(options ...RetryOption) Options {
 	otp := Options{
 		backoffStrategy: backoff.NewRandomBackoff(DefaultBackoff, 100*time.Millisecond),
@@ -62,6 +62,7 @@ func WithUnlimitedAttempts() RetryOption {
 
 // WithRetryIf match the error for retry.
 // If not specified, then all errors will be retried, except for context.* errors.
+// Overwrite other error matching/excluding options.
 func WithRetryIf(matcher ErrorMatcher, matchers ...ErrorMatcher) RetryOption {
 	if len(matchers) == 0 {
 		return func(options *Options) {
@@ -82,6 +83,7 @@ func WithRetryIf(matcher ErrorMatcher, matchers ...ErrorMatcher) RetryOption {
 }
 
 // WithRetryFor match the error for retry using errors.Is.
+// Overwrite other error matching/excluding options.
 func WithRetryFor(err error, errs ...error) RetryOption {
 	if len(errs) == 0 {
 		return func(options *Options) {
@@ -102,6 +104,7 @@ func WithRetryFor(err error, errs ...error) RetryOption {
 }
 
 // WithNoRetryIf exclude the error that matched by matcher.
+// Overwrite other error matching/excluding options.
 func WithNoRetryIf(matcher ErrorMatcher, matchers ...ErrorMatcher) RetryOption {
 	if len(matchers) == 0 {
 		return func(options *Options) {
@@ -122,6 +125,7 @@ func WithNoRetryIf(matcher ErrorMatcher, matchers ...ErrorMatcher) RetryOption {
 }
 
 // WithNoRetryFor exclude the error that matched by error.Is.
+// Overwrite other error matching/excluding options.
 func WithNoRetryFor(err error, errs ...error) RetryOption {
 	if len(errs) == 0 {
 		return func(options *Options) {
@@ -188,7 +192,8 @@ func WithExponentialRandomBackoff(initialBackoff time.Duration, maximumBackoff t
 	}
 }
 
-// WithOnRetry configure listener on each retry.
+// WithOnRetry configure a handler to run on each retry.
+// Overwrite other retry handler options.
 func WithOnRetry(handler OnRetryHandler, handlers ...OnRetryHandler) RetryOption {
 	if len(handlers) == 0 {
 		return func(options *Options) {
@@ -207,6 +212,7 @@ func WithOnRetry(handler OnRetryHandler, handlers ...OnRetryHandler) RetryOption
 
 // WithOnRetryLogging return a RetryOption that log a message on each retry.
 // The log level will automatically be changed to error when reach DefaultMaxAttempts.
+// Overwrite other retry handler options.
 func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
 	return WithOnRetry(NewOnRetryLoggingHandler(level, msg))
 }

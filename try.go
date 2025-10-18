@@ -71,7 +71,7 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 	}
 }
 
-// Get performs the given operation, and return the result.
+// Get performs the given operation and return the result.
 // Based on the retryOptions, it can retry the operation if it failed.
 // See Do.
 func Get[T any](op func() (T, error), retryOptions ...RetryOption) (T, error) {
@@ -88,14 +88,14 @@ func GetCtx[T any](ctx context.Context, op func() (T, error), retryOptions ...Re
 	return GetCtxWithOptions(ctx, op, option)
 }
 
-// GetWithOptions performs the given operation, and returns the result.
+// GetWithOptions performs the given operation and returns the result.
 // Based on the options, it can retry the operation if it failed.
 // See DoWithOptions.
 func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 	return GetCtxWithOptions(context.Background(), op, options)
 }
 
-// GetCtxWithOptions performs the given operation, and returns the result.
+// GetCtxWithOptions performs the given operation and returns the result.
 // Based on the options, it can retry the operation if it failed.
 // Does not retry on ctx error.
 // See DoCtxWithOptions.
