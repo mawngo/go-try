@@ -31,5 +31,6 @@ func main() {
 	i, err = try.GetWithOptions(func() (int, error) {
 		return 2, nil
 	}, opt)
+	println(err == nil)
 	println(i == 2)
 }
