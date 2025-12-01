@@ -37,17 +37,22 @@ func main() {
 
 By default, the function will be retried 5 times max with a 300ms + 100ms jitter backoff.
 
-### Context
+See [examples](examples) for more usage examples.
 
-This library provide `*Ctx()` and `GetCtx()` variants that accept a `Context` parameter.
-Those functions do not retry on context errors.
+See [backoff.go](backoff/backoff.go) for built-in backoff support.
 
-Use `WithJoinCtxErr()` to join the last error with the context error.
+### Options
 
-## Documentation
-
-See [examples](examples/) for more usage examples.
+The `Do()` and `Get()` functions accept a list of  `RetryOption` parameter to customize the retry behavior.
+Options can also be created using `NewOptions()` and then reusing with `DoWithOptions()` and `GetWithOptions()`
+variants.
 
 See [options.go](options.go) for available options.
 
-See [backoff.go](backoff/backoff.go) for built-in backoff support.
+### Context
+
+This library provide `*Ctx()` variants that accept a `Context` parameter.
+Those functions do not retry on context errors.
+
+Use `WithJoinCtxErr()` to join the last error with the context error.
+Note that `context.DeadlineExceeded` and `context.Cancelled` will not be joined.
