@@ -140,6 +140,38 @@ func TestDoRetryLimited(t *testing.T) {
 			t.Fatal("WithAttempts not work")
 		}
 	})
+	t.Run("Unlimited Attempts (0 Attempts)", func(t *testing.T) {
+		i := 0
+		err := Do(func() error {
+			i++
+			if i > 1000 {
+				return nil
+			}
+			return errFailed
+		}, WithAttempts(0), WithNoBackoff())
+		if err != nil {
+			t.Fatal()
+		}
+		if i != 1001 {
+			t.Fatal("WithAttempts not work")
+		}
+	})
+	t.Run("Unlimited Attempts", func(t *testing.T) {
+		i := 0
+		err := Do(func() error {
+			i++
+			if i > 1000 {
+				return nil
+			}
+			return errFailed
+		}, WithUnlimitedAttempts(), WithNoBackoff())
+		if err != nil {
+			t.Fatal()
+		}
+		if i != 1001 {
+			t.Fatal("WithAttempts not work")
+		}
+	})
 }
 
 func TestDoRetryBackoff(t *testing.T) {
