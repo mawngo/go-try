@@ -43,7 +43,7 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 
 	for {
 		if err := ctx.Err(); err != nil {
-			return combineErr(err, lastErr)
+			return combineErr(options.joinCtxErr, err, lastErr)
 		}
 
 		err := op()
@@ -51,10 +51,10 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 
 		if err != nil {
 			if !options.matchError(err) {
-				return combineErr(err, lastErr)
+				return combineErr(options.joinCtxErr, err, lastErr)
 			}
 			if options.maxAttempts > 0 && cnt >= options.maxAttempts {
-				return errors.Join(ErrRetryAttemptsExceed, combineErr(err, lastErr))
+				return errors.Join(ErrRetryAttemptsExceed, combineErr(options.joinCtxErr, err, lastErr))
 			}
 			if options.backoffStrategy != nil {
 				time.Sleep(options.backoffStrategy(err, cnt))
@@ -108,7 +108,7 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 	for {
 		if err := ctx.Err(); err != nil {
 			var empty T
-			return empty, combineErr(err, lastErr)
+			return empty, combineErr(options.joinCtxErr, err, lastErr)
 		}
 
 		v, err := op()
@@ -116,10 +116,10 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 
 		if err != nil {
 			if !options.matchError(err) {
-				return v, combineErr(err, lastErr)
+				return v, combineErr(options.joinCtxErr, err, lastErr)
 			}
 			if options.maxAttempts > 0 && cnt >= options.maxAttempts {
-				return v, errors.Join(ErrRetryAttemptsExceed, combineErr(err, lastErr))
+				return v, errors.Join(ErrRetryAttemptsExceed, combineErr(options.joinCtxErr, err, lastErr))
 			}
 			if options.backoffStrategy != nil {
 				time.Sleep(options.backoffStrategy(err, cnt))
@@ -133,11 +133,11 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 	}
 }
 
-func combineErr(err error, last error) error {
+func combineErr(join bool, err error, last error) error {
 	if last == nil {
 		return err
 	}
-	if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+	if join && (errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled)) {
 		return errors.Join(err, last)
 	}
 	return err

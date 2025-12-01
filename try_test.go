@@ -146,18 +146,33 @@ func TestGetRetry(t *testing.T) {
 	assert.Equal(t, 2, num)
 }
 
-func TestDoNotRetryOnContextErr(t *testing.T) {
-	i := 0
-	err := Do(func() error {
-		if i >= 2 {
-			return context.DeadlineExceeded
+func TestJoinErr(t *testing.T) {
+	t.Run("Default", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		err := DoCtx(ctx, func() error {
+			cancel()
+			return errFailed
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
 		}
-		i++
-		return errFailed
+		if errors.Is(err, errFailed) {
+			t.Fatal("context error must not joined")
+		}
 	})
-	assert.True(t, errors.Is(err, context.DeadlineExceeded))
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 2, i)
+	t.Run("Join", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		err := DoCtx(ctx, func() error {
+			cancel()
+			return errFailed
+		}, WithJoinCtxErr())
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
+		}
+		if !errors.Is(err, errFailed) {
+			t.Fatal("context error not joined")
+		}
+	})
 }
 
 func TestNoRetry(t *testing.T) {

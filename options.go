@@ -18,6 +18,7 @@ type Options struct {
 	excludedMatcher ErrorMatcher
 	backoffStrategy backoff.Strategy
 	onRetry         OnRetryHandler
+	joinCtxErr      bool
 }
 
 // ErrorMatcher match the error, return true if matched.
@@ -50,6 +51,14 @@ func NewOptions(options ...RetryOption) Options {
 func WithAttempts(attempts int) RetryOption {
 	return func(options *Options) {
 		options.maxAttempts = attempts
+	}
+}
+
+// WithJoinCtxErr join the ctx.Err() error with the last error before return.
+// Allow getting the original error when the context timeout.
+func WithJoinCtxErr() RetryOption {
+	return func(options *Options) {
+		options.joinCtxErr = true
 	}
 }
 

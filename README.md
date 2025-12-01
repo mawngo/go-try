@@ -37,6 +37,13 @@ func main() {
 
 By default, the function will be retried 5 times max with a 300ms + 100ms jitter backoff.
 
+### Context
+
+This library provide `*Ctx()` and `GetCtx()` variants that accept a `Context` parameter.
+Those functions do not retry on context errors.
+
+Use `WithJoinCtxErr()` to join the last error with the context error.
+
 ## Documentation
 
 See [examples](examples/) for more usage examples.
