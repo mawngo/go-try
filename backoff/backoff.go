@@ -2,7 +2,7 @@ package backoff
 
 import (
 	"math"
-	"math/rand"
+	"math/rand/v2"
 	"time"
 )
 
@@ -28,7 +28,7 @@ func NewRandomBackoff(minBackoff time.Duration, jitter time.Duration) Strategy {
 // This construct is intended to easily add jitter to user defined backoff Strategy.
 func NewBackoffWithJitter(backoff Strategy, jitter time.Duration) Strategy {
 	return func(err error, i int) time.Duration {
-		return backoff(err, i) + time.Duration(rand.Int63n(int64(jitter)))
+		return backoff(err, i) + time.Duration(rand.Int64N(int64(jitter)))
 	}
 }
 
@@ -48,7 +48,7 @@ func NewExponentialBackoff(initialBackoff time.Duration, multiplier int, maximum
 func NewExponentialRandomBackoff(initialBackoff time.Duration, multiplier int, maximumBackoff time.Duration, jitter time.Duration) Strategy {
 	return func(_ error, i int) time.Duration {
 		exponential := math.Pow(float64(multiplier), float64(i-1))
-		jitter := time.Duration(rand.Int63n(int64(jitter)))
+		jitter := time.Duration(rand.Int64N(int64(jitter)))
 		backoff := initialBackoff * time.Duration(exponential)
 		if maximumBackoff == 0 {
 			return backoff
@@ -76,7 +76,7 @@ func NewIncrementalBackoff(initialBackoff time.Duration, incremental time.Durati
 func NewIncrementalRandomBackoff(initialBackoff time.Duration, incremental time.Duration, maximumBackoff time.Duration, jitter time.Duration) Strategy {
 	return func(_ error, i int) time.Duration {
 		inc := incremental * time.Duration(i-1)
-		jitter := time.Duration(rand.Int63n(int64(jitter)))
+		jitter := time.Duration(rand.Int64N(int64(jitter)))
 		backoff := initialBackoff + inc
 		if maximumBackoff == 0 {
 			return backoff

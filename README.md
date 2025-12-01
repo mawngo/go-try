@@ -1,6 +1,6 @@
 # Go Try
 
-Simple retry helpers for go. Require go 1.22+
+Simple retry helpers for go. Require Go 1.25+
 
 ```shell
 go get -u github.com/mawngo/go-try/v2
