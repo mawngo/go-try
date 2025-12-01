@@ -13,7 +13,8 @@ var ErrRetryAttemptsExceed = errors.New("retry attempts exceed")
 // See RetryOption.
 func Do(op func() error, retryOptions ...RetryOption) error {
 	option := NewOptions(retryOptions...)
-	return DoCtxWithOptions(context.Background(), op, option)
+	//nolint:staticcheck
+	return DoCtxWithOptions(nil, op, option)
 }
 
 // DoCtx perform the given operation.
@@ -28,7 +29,8 @@ func DoCtx(ctx context.Context, op func() error, retryOptions ...RetryOption) er
 // DoWithOptions performs the given operation.
 // Based on the options, it can retry the operation if it failed.
 func DoWithOptions(op func() error, options Options) error {
-	return DoCtxWithOptions(context.Background(), op, options)
+	//nolint:staticcheck
+	return DoCtxWithOptions(nil, op, options)
 }
 
 // DoCtxWithOptions performs the given operation.
@@ -37,13 +39,12 @@ func DoWithOptions(op func() error, options Options) error {
 func DoCtxWithOptions(ctx context.Context, op func() error, options Options) error {
 	cnt := 0
 	var lastErr error
-	if ctx == nil {
-		ctx = context.Background()
-	}
 
 	for {
-		if err := ctx.Err(); err != nil {
-			return combineErr(options.joinCtxErr, err, lastErr)
+		if ctx != nil {
+			if err := ctx.Err(); err != nil {
+				return combineErr(options.joinCtxErr, err, lastErr)
+			}
 		}
 
 		err := op()
@@ -76,7 +77,8 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 // See Do.
 func Get[T any](op func() (T, error), retryOptions ...RetryOption) (T, error) {
 	option := NewOptions(retryOptions...)
-	return GetCtxWithOptions(context.Background(), op, option)
+	//nolint:staticcheck
+	return GetCtxWithOptions(nil, op, option)
 }
 
 // GetCtx performs the given operation, and return the result.
@@ -92,7 +94,8 @@ func GetCtx[T any](ctx context.Context, op func() (T, error), retryOptions ...Re
 // Based on the options, it can retry the operation if it failed.
 // See DoWithOptions.
 func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
-	return GetCtxWithOptions(context.Background(), op, options)
+	//nolint:staticcheck
+	return GetCtxWithOptions(nil, op, options)
 }
 
 // GetCtxWithOptions performs the given operation and returns the result.
@@ -102,13 +105,13 @@ func GetWithOptions[T any](op func() (T, error), options Options) (T, error) {
 func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options Options) (T, error) {
 	cnt := 0
 	var lastErr error
-	if ctx == nil {
-		ctx = context.Background()
-	}
+
 	for {
-		if err := ctx.Err(); err != nil {
-			var empty T
-			return empty, combineErr(options.joinCtxErr, err, lastErr)
+		if ctx != nil {
+			if err := ctx.Err(); err != nil {
+				var empty T
+				return empty, combineErr(options.joinCtxErr, err, lastErr)
+			}
 		}
 
 		v, err := op()
