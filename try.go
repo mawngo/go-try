@@ -63,7 +63,7 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
 			}
-			if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
+			if options.joinCtxErr && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 				lastErr = err
 			}
 			continue
@@ -130,7 +130,7 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
 			}
-			if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
+			if options.joinCtxErr && !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
 				lastErr = err
 			}
 			continue
