@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/mawngo/go-try/v2/backoff"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 )
@@ -20,19 +19,46 @@ func TestDoRetry(t *testing.T) {
 		i++
 		return errors.New("failed")
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, 2, i)
+	if err != nil {
+		t.Fatal()
+	}
+	if i != 2 {
+		t.Fatal("retry times not match")
+	}
 }
 
 func TestDoCtxRetry(t *testing.T) {
-	i := 0
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	err := DoCtx(ctx, func() error {
-		return nil
+	t.Run("CancelledContext", func(t *testing.T) {
+		i := 0
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		err := DoCtx(ctx, func() error {
+			i++
+			return nil
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
+		}
+		if i != 0 {
+			t.Fatal("must not execute on cancelled context")
+		}
 	})
-	assert.True(t, errors.Is(err, context.Canceled))
-	assert.Equal(t, 0, i)
+
+	t.Run("ContextCancelled", func(t *testing.T) {
+		i := 0
+		ctx, cancel := context.WithCancel(context.Background())
+		err := DoCtx(ctx, func() error {
+			i++
+			cancel()
+			return errFailed
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
+		}
+		if i != 1 {
+			t.Fatal("must not retry on cancelled context")
+		}
+	})
 }
 
 func TestDoRetryWithOnRetry(t *testing.T) {
@@ -42,8 +68,12 @@ func TestDoRetryWithOnRetry(t *testing.T) {
 	}, WithAttempts(10), WithOnRetry(func(_ context.Context, _ error, _ int) {
 		i++
 	}))
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 9, i)
+	if !errors.Is(err, errFailed) {
+		t.Fatal()
+	}
+	if i != 9 {
+		t.Fatal("onRetry not executed")
+	}
 }
 
 func TestDoRetryWithSpecificError(t *testing.T) {
@@ -56,32 +86,60 @@ func TestDoRetryWithSpecificError(t *testing.T) {
 		i++
 		return errFailed
 	}, WithRetryFor(errFailed))
-	assert.True(t, errors.Is(err, errAnother))
-	assert.Equal(t, 2, i)
+	if !errors.Is(err, errAnother) {
+		t.Fatal()
+	}
+	if i != 2 {
+		t.Fatal("WithRetryFor not work")
+	}
 }
 
 func TestDoRetryWithSpecificErrorExclude(t *testing.T) {
 	i := 0
 	errAnother := errors.New("another")
 	err := Do(func() error {
+		i++
 		if i >= 2 {
 			return errAnother
 		}
-		i++
 		return errFailed
 	}, WithNoRetryFor(errAnother))
-	assert.True(t, errors.Is(err, errAnother))
-	assert.Equal(t, 2, i)
+	if !errors.Is(err, errAnother) {
+		t.Fatal()
+	}
+	if i != 2 {
+		t.Fatal("WithNoRetryFor not work")
+	}
 }
 
 func TestDoRetryLimited(t *testing.T) {
-	i := 0
-	err := Do(func() error {
-		i++
-		return errFailed
-	}, WithAttempts(10))
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 10, i)
+	t.Run("MaxAttempts", func(t *testing.T) {
+		i := 0
+		err := Do(func() error {
+			i++
+			return errFailed
+		}, WithAttempts(10))
+		if !errors.Is(err, errFailed) {
+			t.Fatal()
+		}
+		if i != 10 {
+			t.Fatal("WithAttempts not work")
+		}
+	})
+
+	t.Run("1 Attempts (NoRetry)", func(t *testing.T) {
+		i := 0
+		err := Do(func() error {
+			i++
+			return errFailed
+		}, WithAttempts(1))
+		if !errors.Is(err, errFailed) {
+			t.Fatal()
+		}
+		if i != 1 {
+			t.Fatal("WithAttempts not work")
+		}
+	})
 }
 
 func TestDoRetryBackoff(t *testing.T) {
@@ -92,12 +150,16 @@ func TestDoRetryBackoff(t *testing.T) {
 		return errFailed
 	}, WithAttempts(11), WithFixedBackoff(200*time.Millisecond))
 	took := time.Since(start)
-
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 11, i)
-	// Expected total retry sleep took 2s
-	assert.Greater(t, took, 2000*time.Millisecond)
-	assert.Greater(t, 2100*time.Millisecond, took)
+	if !errors.Is(err, errFailed) {
+		t.Fatal()
+	}
+	if i != 11 {
+		t.Fatal()
+	}
+	// Expected total retry sleep took 2s. 100ms buffer for execution time.
+	if took <= 2000*time.Millisecond || took > 2100*time.Millisecond {
+		t.Fatal("backoff not work")
+	}
 }
 
 func TestDoRetryExponentialBackoff(t *testing.T) {
@@ -108,12 +170,16 @@ func TestDoRetryExponentialBackoff(t *testing.T) {
 		return errFailed
 	}, WithAttempts(4), WithExponentialBackoff(200*time.Millisecond, 0))
 	took := time.Since(start)
-
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 4, i)
-	// Expected total retry sleep took 1400ms
-	assert.Greater(t, took, 1400*time.Millisecond)
-	assert.Greater(t, 1500*time.Millisecond, took)
+	if !errors.Is(err, errFailed) {
+		t.Fatal()
+	}
+	if i != 4 {
+		t.Fatal()
+	}
+	// Expected total retry sleep took 1400ms. 100ms buffer for execution time.
+	if took <= 1400*time.Millisecond || took >= 1500*time.Millisecond {
+		t.Fatal("backoff not work")
+	}
 }
 
 func TestDoRetryIncrementalBackoff(t *testing.T) {
@@ -124,12 +190,16 @@ func TestDoRetryIncrementalBackoff(t *testing.T) {
 		return errFailed
 	}, WithAttempts(5), WithBackoff(backoff.NewIncrementalBackoff(200*time.Millisecond, 200*time.Millisecond, 0)))
 	took := time.Since(start)
-
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 5, i)
-	// Expected total retry sleep took 2000ms
-	assert.Greater(t, time.Since(start), 2000*time.Millisecond)
-	assert.Greater(t, 2100*time.Millisecond, took)
+	if !errors.Is(err, errFailed) {
+		t.Fatal()
+	}
+	if i != 5 {
+		t.Fatal()
+	}
+	// Expected total retry sleep took 2s. 100ms buffer for execution time.
+	if took <= 2000*time.Millisecond || took > 2100*time.Millisecond {
+		t.Fatal("backoff not work")
+	}
 }
 
 func TestGetRetry(t *testing.T) {
@@ -141,9 +211,12 @@ func TestGetRetry(t *testing.T) {
 		i++
 		return 0, errors.New("failed")
 	})
-	assert.Nil(t, err)
-	assert.Equal(t, 2, i)
-	assert.Equal(t, 2, num)
+	if err != nil {
+		t.Fatal()
+	}
+	if num != 2 {
+		t.Fatal("not retried")
+	}
 }
 
 func TestJoinErr(t *testing.T) {
@@ -175,16 +248,6 @@ func TestJoinErr(t *testing.T) {
 	})
 }
 
-func TestNoRetry(t *testing.T) {
-	i := 0
-	err := Do(func() error {
-		i++
-		return errFailed
-	}, WithAttempts(1))
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 1, i)
-}
-
 func TestWithOptions(t *testing.T) {
 	global := NewOptions(WithAttempts(1))
 	i := 0
@@ -192,7 +255,13 @@ func TestWithOptions(t *testing.T) {
 		i++
 		return errFailed
 	}, WithOptions(global), WithAttempts(2))
-	assert.True(t, errors.Is(err, errFailed))
-	assert.Equal(t, 2, i)
-	assert.Equal(t, 1, global.maxAttempts)
+	if !errors.Is(err, errFailed) {
+		t.Fatal()
+	}
+	if global.maxAttempts != 1 {
+		t.Fatal()
+	}
+	if i != 2 {
+		t.Fatal("WithAttempts must override global options")
+	}
 }
