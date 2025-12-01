@@ -246,6 +246,32 @@ func TestJoinErr(t *testing.T) {
 			t.Fatal("context error not joined")
 		}
 	})
+	t.Run("DefaultGet", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		_, err := GetCtx(ctx, func() (int, error) {
+			cancel()
+			return 0, errFailed
+		})
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
+		}
+		if errors.Is(err, errFailed) {
+			t.Fatal("context error must not joined")
+		}
+	})
+	t.Run("JoinGet", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		_, err := GetCtx(ctx, func() (int, error) {
+			cancel()
+			return 0, errFailed
+		}, WithJoinCtxErr())
+		if !errors.Is(err, context.Canceled) {
+			t.Fatal("context error swallowed")
+		}
+		if !errors.Is(err, errFailed) {
+			t.Fatal("context error not joined")
+		}
+	})
 }
 
 func TestWithOptions(t *testing.T) {

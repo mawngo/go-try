@@ -130,6 +130,9 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
 			}
+			if !errors.Is(err, context.DeadlineExceeded) && !errors.Is(err, context.Canceled) {
+				lastErr = err
+			}
 			continue
 		}
 		return v, nil
