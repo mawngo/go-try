@@ -58,7 +58,8 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 				return errors.Join(ErrRetryAttemptsExceed, combineErr(options.joinCtxErr, err, lastErr))
 			}
 			if options.backoffStrategy != nil {
-				time.Sleep(options.backoffStrategy(err, cnt))
+				backoff := options.backoffStrategy(err, cnt)
+				time.Sleep(min(backoff, maximumBackoff))
 			}
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
@@ -125,7 +126,8 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 				return v, errors.Join(ErrRetryAttemptsExceed, combineErr(options.joinCtxErr, err, lastErr))
 			}
 			if options.backoffStrategy != nil {
-				time.Sleep(options.backoffStrategy(err, cnt))
+				backoff := options.backoffStrategy(err, cnt)
+				time.Sleep(min(backoff, maximumBackoff))
 			}
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)

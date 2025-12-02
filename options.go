@@ -5,12 +5,14 @@ import (
 	"errors"
 	"github.com/mawngo/go-try/v2/backoff"
 	"log/slog"
+	"math"
 	"time"
 )
 
 const DefaultBackoff = 300 * time.Millisecond
 const DefaultMaxAttempts = 5
 const defaultMultiplier = 2
+const maximumBackoff = time.Duration(math.MaxInt64)
 
 type Options struct {
 	maxAttempts     int
@@ -32,8 +34,8 @@ type RetryOption func(options *Options)
 
 // NewOptions create an Options.
 // Defaults:
-//   - maxAttempts 5 times.
-//   - 300 ms backoff + 100 ms jitter.
+//   - [DefaultMaxAttempts].
+//   - [DefaultBackoff] + 100 ms jitter.
 func NewOptions(options ...RetryOption) Options {
 	otp := Options{
 		backoffStrategy: backoff.NewRandomBackoff(DefaultBackoff, 100*time.Millisecond),
