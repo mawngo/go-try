@@ -10,12 +10,15 @@ import (
 )
 
 const DefaultBackoff = 300 * time.Millisecond
+const DefaultJitter = 100 * time.Millisecond
+
 const DefaultAttempts = 5
-const defaultMultiplier = 2
-const maximumBackoff = time.Duration(math.MaxInt64)
 
 // Deprecated: use [DefaultAttempts] instead.
 const DefaultMaxAttempts = 5
+
+const defaultMultiplier = 2
+const maximumBackoff = time.Duration(math.MaxInt64)
 
 type Options struct {
 	maxAttempts     int
@@ -38,10 +41,10 @@ type RetryOption func(options *Options)
 // NewOptions create an Options.
 // Defaults:
 //   - [DefaultAttempts].
-//   - [DefaultBackoff] + 100 ms jitter.
+//   - [DefaultBackoff] + [DefaultJitter].
 func NewOptions(options ...RetryOption) Options {
 	otp := Options{
-		backoffStrategy: backoff.NewRandomBackoff(DefaultBackoff, 100*time.Millisecond),
+		backoffStrategy: backoff.NewRandomBackoff(DefaultBackoff, DefaultJitter),
 		maxAttempts:     DefaultAttempts,
 	}
 	for _, o := range options {
