@@ -10,9 +10,12 @@ import (
 )
 
 const DefaultBackoff = 300 * time.Millisecond
-const DefaultMaxAttempts = 5
+const DefaultAttempts = 5
 const defaultMultiplier = 2
 const maximumBackoff = time.Duration(math.MaxInt64)
+
+// Deprecated: use [DefaultAttempts] instead.
+const DefaultMaxAttempts = 5
 
 type Options struct {
 	maxAttempts     int
@@ -34,12 +37,12 @@ type RetryOption func(options *Options)
 
 // NewOptions create an Options.
 // Defaults:
-//   - [DefaultMaxAttempts].
+//   - [DefaultAttempts].
 //   - [DefaultBackoff] + 100 ms jitter.
 func NewOptions(options ...RetryOption) Options {
 	otp := Options{
 		backoffStrategy: backoff.NewRandomBackoff(DefaultBackoff, 100*time.Millisecond),
-		maxAttempts:     DefaultMaxAttempts,
+		maxAttempts:     DefaultAttempts,
 	}
 	for _, o := range options {
 		o(&otp)
@@ -222,8 +225,10 @@ func WithOnRetry(handler OnRetryHandler, handlers ...OnRetryHandler) RetryOption
 }
 
 // WithOnRetryLogging return a RetryOption that log a message on each retry.
-// The log level will automatically be changed to error when reach DefaultMaxAttempts.
+// The log level will automatically be changed to error when reach DefaultAttempts.
 // Overwrite other retry handler options.
+//
+// The logging functionally is provided by [NewOnRetryLoggingHandler].
 func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
 	return WithOnRetry(NewOnRetryLoggingHandler(level, msg))
 }
@@ -231,7 +236,7 @@ func WithOnRetryLogging(level slog.Level, msg string) RetryOption {
 // NewOnRetryLoggingHandler return a OnRetryHandler that log a message on each retry.
 func NewOnRetryLoggingHandler(level slog.Level, msg string) OnRetryHandler {
 	return func(ctx context.Context, err error, i int) {
-		if i >= DefaultMaxAttempts {
+		if i >= DefaultAttempts {
 			level = slog.LevelError
 		}
 		slog.Log(ctx, level, msg, slog.Int("retry", i), slog.Any("err", err))
