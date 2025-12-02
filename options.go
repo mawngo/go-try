@@ -15,7 +15,7 @@ const DefaultJitter = 100 * time.Millisecond
 const DefaultAttempts = 5
 
 // Deprecated: use [DefaultAttempts] instead.
-const DefaultMaxAttempts = 5
+const DefaultMaxAttempts = DefaultAttempts
 
 const defaultMultiplier = 2
 const maximumBackoff = time.Duration(math.MaxInt64)
