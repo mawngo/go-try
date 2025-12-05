@@ -5,20 +5,17 @@ import (
 	"errors"
 	"github.com/mawngo/go-try/v2/backoff"
 	"log/slog"
-	"math"
 	"time"
 )
 
 const DefaultBackoff = 300 * time.Millisecond
 const DefaultJitter = 100 * time.Millisecond
 
-const DefaultAttempts = 5
-
 // Deprecated: use [DefaultAttempts] instead.
 const DefaultMaxAttempts = DefaultAttempts
+const DefaultAttempts = 5
 
 const defaultMultiplier = 2
-const maximumBackoff = time.Duration(math.MaxInt64)
 
 type Options struct {
 	maxAttempts     int

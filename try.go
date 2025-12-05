@@ -3,6 +3,7 @@ package try
 import (
 	"context"
 	"errors"
+	"math"
 	"time"
 )
 
@@ -59,7 +60,12 @@ func DoCtxWithOptions(ctx context.Context, op func() error, options Options) err
 			}
 			if options.backoffStrategy != nil {
 				backoff := options.backoffStrategy(err, cnt)
-				time.Sleep(min(backoff, maximumBackoff))
+				if backoff != 0 {
+					if backoff < 0 {
+						backoff = time.Duration(math.MaxInt64)
+					}
+					time.Sleep(backoff)
+				}
 			}
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
@@ -127,7 +133,12 @@ func GetCtxWithOptions[T any](ctx context.Context, op func() (T, error), options
 			}
 			if options.backoffStrategy != nil {
 				backoff := options.backoffStrategy(err, cnt)
-				time.Sleep(min(backoff, maximumBackoff))
+				if backoff != 0 {
+					if backoff < 0 {
+						backoff = time.Duration(math.MaxInt64)
+					}
+					time.Sleep(backoff)
+				}
 			}
 			if options.onRetry != nil {
 				options.onRetry(ctx, err, cnt)
