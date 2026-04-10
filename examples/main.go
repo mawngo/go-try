@@ -21,9 +21,9 @@ func main() {
 		try.WithOnRetryLogging(slog.LevelInfo, "retrying..."),
 	)
 
-	//2025/12/02 15:55:08 INFO retrying... retry=1 err=failed
-	//2025/12/02 15:55:08 INFO retrying... retry=2 err=failed
+	// 2025/12/02 15:55:08 INFO retrying... retry=1 err=failed
+	// 2025/12/02 15:55:08 INFO retrying... retry=2 err=failed
 
 	println(err == nil) // true
-	println(i == 2)     //true
+	println(i == 2)     // true
 }
